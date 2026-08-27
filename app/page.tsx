@@ -23,7 +23,7 @@ const demoStudents: Student[] = [
 const demoEvent: EventRecord = { id: 1, title: "2026학년도 2학기 학부모 총회", eventDate: "2026-09-03", status: "active", targetGrades: "1,2,3" };
 
 function Mark() { return <div className="mark" aria-label="한영외국어고등학교"><span>HYFL</span></div>; }
-function AppHeader({ admin, onAdmin }: { admin?: boolean; onAdmin?: () => void }) { return <header className="site-header"><div className="header-brand"><img className="school-logo" src="/hyfl-logo.png" alt="한영외국어고등학교"/><span>학부모 행사 참석 관리</span></div>{onAdmin && <button className="quiet-link" onClick={onAdmin}>{admin ? "체크인 화면" : "관리자"}</button>}</header>; }
+function AppHeader({ admin, onAdmin }: { admin?: boolean; onAdmin?: () => void }) { return <header className="site-header"><div className="header-brand"><img className="school-logo" src="/hyfl-logo.svg" alt="한영외국어고등학교"/><span>학부모 행사 참석 관리</span></div>{onAdmin && <button className="quiet-link" onClick={onAdmin}>{admin ? "체크인 화면" : "관리자"}</button>}</header>; }
 
 export default function Home() {
   const [mode, setMode] = useState<"checkin" | "admin">("checkin"); const [event, setEvent] = useState<EventRecord>(demoEvent);
