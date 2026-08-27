@@ -1,0 +1,12 @@
+import { asc, desc, eq } from "drizzle-orm";
+import { getDb } from "../../../db";
+import { attendance, events, students } from "../../../db/schema";
+
+export async function GET(){try{const db=getDb();const eventRows=await db.select().from(events).orderBy(desc(events.id));return Response.json({events:eventRows})}catch(error){return Response.json({error:error instanceof Error?error.message:"불러오지 못했습니다."},{status:500})}}
+
+export async function POST(request:Request){try{const body=await request.json() as Record<string,unknown>;const db=getDb();
+  if(body.action==="createEvent"){const title=String(body.title??"").trim(),eventDate=String(body.eventDate??"").trim(),targetGrades=String(body.targetGrades??"1,2,3");if(!title||!eventDate)return Response.json({error:"행사명과 날짜를 입력해 주세요."},{status:400});const active=await db.select().from(events).where(eq(events.status,"active"));if(active.length)await db.batch(active.map(e=>db.update(events).set({status:"closed"}).where(eq(events.id,e.id))));const[record]=await db.insert(events).values({title,eventDate,targetGrades,status:"active"}).returning();return Response.json({event:record},{status:201})}
+  if(body.action==="importStudents"){const rows=Array.isArray(body.rows)?body.rows:[];if(!rows.length)return Response.json({error:"명단이 비어 있습니다."},{status:400});const year=Number(body.schoolYear)||new Date().getFullYear();const valid=rows.map((r:any)=>({schoolYear:year,grade:Number(r.grade),classNo:Number(r.classNo),studentNo:Number(r.studentNo),name:String(r.name??"").trim(),active:true})).filter(r=>[1,2,3].includes(r.grade)&&r.classNo>0&&r.studentNo>0&&r.name);if(!valid.length)return Response.json({error:"명단 형식을 확인해 주세요."},{status:400});const current=await db.select().from(students).where(eq(students.schoolYear,year)).orderBy(asc(students.id));if(current.length)await db.batch(current.map(s=>db.update(students).set({active:false}).where(eq(students.id,s.id))));for(const row of valid){await db.insert(students).values(row).onConflictDoUpdate({target:[students.schoolYear,students.grade,students.classNo,students.studentNo],set:{name:row.name,active:true}})}return Response.json({count:valid.length},{status:201})}
+  if(body.action==="deleteAttendance"){const id=Number(body.id);if(id)await db.delete(attendance).where(eq(attendance.id,id));return Response.json({ok:true})}
+  return Response.json({error:"지원하지 않는 요청입니다."},{status:400});
+}catch(error){return Response.json({error:error instanceof Error?error.message:"처리하지 못했습니다."},{status:500})}}
