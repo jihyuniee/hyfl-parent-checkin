@@ -1,0 +1,1 @@
+.header-brand{display:flex;align-items:center;gap:18px}.school-logo{display:block;width:320px;max-width:52vw;height:auto}.header-brand>span{padding-left:18px;border-left:1px solid #dfe4ea;color:#778292;font-size:12px;white-space:nowrap}@media(max-width:600px){.school-logo{width:245px;max-width:70vw}.header-brand>span{display:none}}
