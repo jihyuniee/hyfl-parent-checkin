@@ -10,7 +10,6 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
 const localBindingConfig = {
   main: "./worker/index.ts",
-  compatibility_flags: ["nodejs_compat"],
   // Production D1 is declared in wrangler.jsonc. Keeping this empty avoids
   // generating a duplicate DB binding during Cloudflare's Vite build.
   d1_databases: [],
