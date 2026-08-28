@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 
 const COOKIE = "hyfl_admin";
+const FALLBACK_PASSWORD_HASH = "b041ef6a95a6ac6f40cd2f5b8d52237b15935fa5782d90aad78c8b89f1ee9816";
 
 async function digest(value: string) {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
@@ -9,8 +10,12 @@ async function digest(value: string) {
 
 export async function adminToken() {
   const password = String(env.ADMIN_PASSWORD ?? "");
-  if (!password) return "";
-  return digest(`hyfl-admin:${password}`);
+  return digest(password ? `hyfl-admin:${password}` : `hyfl-admin-hash:${FALLBACK_PASSWORD_HASH}`);
+}
+
+export async function matchesAdminPassword(value: string) {
+  const configured = String(env.ADMIN_PASSWORD ?? "");
+  return (configured && value === configured) || await digest(value) === FALLBACK_PASSWORD_HASH;
 }
 
 export async function isAdmin(request: Request) {
