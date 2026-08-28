@@ -57,15 +57,11 @@ export async function GET(request: Request) {
       return Response.json({ event: event ?? null });
     }
 
-    const rows = await db.select().from(events)
-      .where(or(eq(events.status, "active"), eq(events.status, "scheduled")))
-      .orderBy(asc(events.eventDate), asc(events.id));
     const today = koreaDate();
-    const event = rows.find(row => row.eventDate === today)
-      ?? rows.find(row => row.eventDate > today)
-      ?? rows.at(-1)
-      ?? null;
-    return Response.json({ event });
+    const [event] = await db.select().from(events)
+      .where(and(eq(events.eventDate, today), or(eq(events.status, "active"), eq(events.status, "scheduled"))))
+      .orderBy(asc(events.id)).limit(1);
+    return Response.json({ event: event ?? null });
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "데이터를 불러오지 못했습니다." },
@@ -86,6 +82,7 @@ export async function POST(request: Request) {
     const classNo = Number(body.classNo);
     const studentName = String(body.studentName ?? "").replace(/\s/g, "");
     const partySize = Number(body.partySize ?? 1);
+    const today = koreaDate();
     if (!eventId || !grade || !classNo || !studentName || ![1, 2].includes(partySize)) {
       return Response.json({ error: "입력 내용을 확인해 주세요." }, { status: 400 });
     }
@@ -96,13 +93,13 @@ export async function POST(request: Request) {
       FROM students s
       JOIN events e ON e.id = ?1
       WHERE s.active = 1 AND s.grade = ?2 AND s.class_no = ?3 AND REPLACE(s.name, ' ', '') = ?4
-        AND e.status IN ('active', 'scheduled')
+        AND e.status IN ('active', 'scheduled') AND e.event_date = ?6
         AND (',' || e.target_grades || ',') LIKE '%,' || ?2 || ',%'
       ON CONFLICT(event_id, student_id) DO NOTHING
       RETURNING id, event_id AS eventId, student_id AS studentId,
         guardian_name AS guardianName, relationship, party_size AS partySize,
         checked_in_at AS checkedInAt
-    `).bind(eventId, grade, classNo, studentName, partySize).first<AttendanceRecord>());
+    `).bind(eventId, grade, classNo, studentName, partySize, today).first<AttendanceRecord>());
 
     const student = await withD1Retry(() => env.DB.prepare(`
       SELECT id, grade, class_no AS classNo, student_no AS studentNo, name
