@@ -38,6 +38,7 @@
     "sonner": "^2.0.8",
     "tailwind-merge": "3.6.0",
     "vaul": "^1.1.2",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -60,5 +61,5 @@
     "wrangler": "4.92.0"
   },
   "type": "module",
-  "displayName": "\ud55c\uc601\uc678\uace0 \ud559\ubd80\ubaa8 \ud589\uc0ac \ucc38\uc11d \uad00\ub9ac"
+  "displayName": "한영외고 학부모 행사 참석 관리"
 }
