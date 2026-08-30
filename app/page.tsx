@@ -42,6 +42,7 @@ type Student = {
 };
 type Attendance = {
   id: number;
+  eventId: number;
   studentId: number;
   guardianName: string;
   relationship: string;
@@ -153,7 +154,7 @@ export default function Home() {
     const data = await r.json();
     if (data.students) setStudents(data.students);
     if (data.attendance) setAttendance(data.attendance);
-    if (data.events?.[0]) setEvent(data.events[0]);
+    if (data.activeEvent) setEvent(data.activeEvent);
     setConnected(true);
     return true;
   };
@@ -549,7 +550,17 @@ function Admin({
     "overview",
   );
   const [gradeFilter, setGradeFilter] = useState<number | "all">("all");
-  const attendees = new Set(attendance.map((a) => a.studentId));
+  const eventGrade = Number(event.targetGrades);
+  const eventStudents = students.filter((s) => s.grade === eventGrade);
+  const eventAttendance = attendance.filter((a) => a.eventId === event.id);
+  const attendees = new Set(eventAttendance.map((a) => a.studentId));
+  const classSummary = Array.from({ length: 10 }, (_, index) => {
+    const classNo = index + 1;
+    const rows = eventStudents.filter((s) => s.classNo === classNo);
+    const records = eventAttendance.filter((a) => rows.some((s) => s.id === a.studentId));
+    return { classNo, families: records.length, people: records.reduce((sum, a) => sum + a.partySize, 0) };
+  });
+  const attendedRows = eventAttendance.map((a) => ({ attendance: a, student: eventStudents.find((s) => s.id === a.studentId) })).filter((row): row is { attendance: Attendance; student: Student } => Boolean(row.student)).sort((a,b) => a.student.classNo-b.student.classNo || a.student.studentNo-b.student.studentNo);
   const filtered =
     gradeFilter === "all"
       ? students
@@ -816,7 +827,7 @@ function Admin({
         </div>
         {section === "overview" && (
           <>
-            <div className="event-strip">
+            <div className="event-strip simple-event-strip">
               <div>
                 <Badge>진행 중</Badge>
                 <h2>{event.title}</h2>
@@ -826,181 +837,53 @@ function Admin({
                 </p>
               </div>
               <div className="event-total">
-                <strong>{attendees.size}</strong>
-                <span>/ {students.length}명</span>
+                <strong>{attendees.size}가정</strong>
+                <span>보호자 {eventAttendance.reduce((sum, a) => sum + a.partySize, 0)}명</span>
               </div>
             </div>
-            <div className="metric-grid">
-              <Metric
-                icon={<ClipboardCheck />}
-                label="참석 학생"
-                value={`${attendees.size}`}
-                sub={`전체 ${students.length}명`}
-              />
-              <Metric
-                icon={<Users />}
-                label="참석 보호자"
-                value={`${attendance.reduce((a, b) => a + b.partySize, 0)}`}
-                sub="현장 등록 인원"
-              />
-              <Metric
-                icon={<BarChart3 />}
-                label="전체 참석률"
-                value={`${students.length ? Math.round((attendees.size / students.length) * 100) : 0}%`}
-                sub="실시간 집계"
-              />
-            </div>
-            <div className="chart-grid">
-              <ChartCard
-                title="시간대별 도착 추이"
-                subtitle="10분 단위 등록 인원"
-              >
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={arrivalData}>
-                    <CartesianGrid stroke="#eef1f4" vertical={false} />
-                    <XAxis
-                      dataKey="time"
-                      tick={{ fontSize: 10, fill: "#7b8794" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      allowDecimals={false}
-                      tick={{ fontSize: 10, fill: "#7b8794" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="count"
-                      name="도착 인원"
-                      stroke="#2f628f"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="cumulative"
-                      name="누적 인원"
-                      stroke="#9eb3c7"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartCard>
-              <ChartCard
-                title="반별 참석률"
-                subtitle="학생 명단 기준 참석 비율"
-              >
-                <ResponsiveContainer width="100%" height={220}>
-                  <ReBarChart data={classData}>
-                    <CartesianGrid stroke="#eef1f4" vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 9, fill: "#7b8794" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      domain={[0, 100]}
-                      tick={{ fontSize: 10, fill: "#7b8794" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip formatter={(value) => [`${value}%`, "참석률"]} />
-                    <Bar dataKey="rate" fill="#416f99" radius={[4, 4, 0, 0]} />
-                  </ReBarChart>
-                </ResponsiveContainer>
-              </ChartCard>
+            <div className="class-attendance-grid">
+              {classSummary.map((row) => <div className="class-attendance-card" key={row.classNo}><strong>{row.classNo}반</strong><b>{row.families}<small>가정</small></b><span>보호자 {row.people}명</span></div>)}
             </div>
             <div className="panel">
               <div className="panel-head">
                 <div>
-                  <h2>학년별 참석 현황</h2>
+                  <h2>{eventGrade}학년 참석 등록 명단</h2>
                   <p>
                     잘못 등록된 경우 오른쪽의 취소 버튼으로 즉시 해제할 수
                     있습니다.
                   </p>
                   {notice && <p className="notice">{notice}</p>}
                 </div>
-                <div className="filter-group">
-                  {(["all", 1, 2, 3] as const).map((g) => (
-                    <button
-                      key={g}
-                      className={gradeFilter === g ? "active" : ""}
-                      onClick={() => setGradeFilter(g)}
-                    >
-                      {g === "all" ? "전체" : `${g}학년`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="grade-bars">
-                {counts
-                  .filter((x) => gradeFilter === "all" || x.g === gradeFilter)
-                  .map((x) => (
-                    <div key={x.g}>
-                      <div>
-                        <strong>{x.g}학년</strong>
-                        <span>
-                          {x.attended} / {x.total}명
-                        </span>
-                      </div>
-                      <Progress
-                        value={x.total ? (x.attended / x.total) * 100 : 0}
-                      />
-                    </div>
-                  ))}
               </div>
               <div className="table-wrap">
                 <table>
                   <thead>
                     <tr>
-                      <th>학년</th>
                       <th>반</th>
                       <th>번호</th>
                       <th>학생</th>
-                      <th>참석 여부</th>
-                      <th>보호자</th>
-                      <th>인원</th>
+                      <th>참석 인원</th>
                       <th>등록 시각</th>
                       <th>관리</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((s) => {
-                      const a = attendance.find((x) => x.studentId === s.id);
+                    {attendedRows.map(({student:s,attendance:a}) => {
                       return (
                         <tr key={s.id}>
-                          <td>{s.grade}</td>
                           <td>{s.classNo}</td>
                           <td>{String(s.studentNo).padStart(2, "0")}</td>
                           <td>
                             <strong>{s.name}</strong>
                           </td>
+                          <td>{a.partySize}명</td>
                           <td>
-                            <span
-                              className={`status-dot ${a ? "present" : ""}`}
-                            >
-                              {a ? "참석" : "미등록"}
-                            </span>
-                          </td>
-                          <td>
-                            {a ? `${a.guardianName} · ${a.relationship}` : "—"}
-                          </td>
-                          <td>{a ? `${a.partySize}명` : "—"}</td>
-                          <td>
-                            {a
-                              ? new Date(a.checkedInAt).toLocaleTimeString(
+                            {new Date(a.checkedInAt).toLocaleTimeString(
                                   "ko-KR",
                                   { hour: "2-digit", minute: "2-digit" },
-                                )
-                              : "—"}
+                                )}
                           </td>
                           <td>
-                            {a ? (
                               <button
                                 className="cancel-attendance"
                                 onClick={() => cancelAttendance(a, s.name)}
@@ -1009,13 +892,11 @@ function Admin({
                                 <Trash2 />
                                 취소
                               </button>
-                            ) : (
-                              "—"
-                            )}
                           </td>
                         </tr>
                       );
                     })}
+                    {!attendedRows.length&&<tr><td colSpan={6} className="empty-table">아직 참석 등록된 가정이 없습니다.</td></tr>}
                   </tbody>
                 </table>
               </div>
