@@ -13,11 +13,11 @@ for (const [grade, date] of [[1,"2026. 09. 03."],[2,"2026. 09. 04."]]) {
   <text x="1815" y="112" text-anchor="end" fill="#77766f" font-family="Georgia, 'Times New Roman', serif" font-size="19" letter-spacing="6">H Y F L  P A R E N T  M E E T I N G</text>
   <line x1="104" y1="190" x2="1815" y2="190" stroke="#d6d4cd" stroke-width="1"/>
   <text x="315" y="335" text-anchor="middle" fill="#77766f" font-family="Georgia, 'Times New Roman', serif" font-size="18" letter-spacing="4">${date}</text>
-  <text x="315" y="395" text-anchor="middle" fill="#181916" font-family="Arial, 'Noto Sans KR', sans-serif" font-size="31" font-weight="500">2026학년도 ${grade}학년 학부모 총회</text>
+  <text x="315" y="395" text-anchor="middle" fill="#181916" font-family="'Noto Sans KR Thin', 'Noto Sans KR', Arial, sans-serif" font-size="31" font-weight="500">2026학년도 ${grade}학년 학부모 총회</text>
   <line x1="225" y1="445" x2="405" y2="445" stroke="#8e8b82" stroke-width="1"/>
-  <text x="315" y="535" text-anchor="middle" fill="#242520" font-family="Arial, 'Noto Sans KR', sans-serif" font-size="29" font-weight="500">QR 코드를 촬영해 주세요</text>
-  <text x="315" y="586" text-anchor="middle" fill="#77766f" font-family="Arial, 'Noto Sans KR', sans-serif" font-size="20">자녀의 반과 이름을 입력하면</text>
-  <text x="315" y="620" text-anchor="middle" fill="#77766f" font-family="Arial, 'Noto Sans KR', sans-serif" font-size="20">참석 등록이 완료됩니다.</text>
+  <text x="315" y="535" text-anchor="middle" fill="#242520" font-family="'Noto Sans KR Thin', 'Noto Sans KR', Arial, sans-serif" font-size="29" font-weight="500">QR 코드를 촬영해 주세요</text>
+  <text x="315" y="586" text-anchor="middle" fill="#77766f" font-family="'Noto Sans KR Thin', 'Noto Sans KR', Arial, sans-serif" font-size="20">자녀의 반과 이름을 입력하면</text>
+  <text x="315" y="620" text-anchor="middle" fill="#77766f" font-family="'Noto Sans KR Thin', 'Noto Sans KR', Arial, sans-serif" font-size="20">참석 등록이 완료됩니다.</text>
   <svg x="785" y="200" width="800" height="800" viewBox="0 0 41 41">${qrBody}</svg>
   <line x1="104" y1="955" x2="625" y2="955" stroke="#d6d4cd" stroke-width="1"/>
   <text x="104" y="992" fill="#77766f" font-family="Arial, sans-serif" font-size="15" letter-spacing="1">hyfl-parent-checkin.jihyun178.workers.dev</text>

@@ -12,7 +12,15 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   // Production D1 is declared in wrangler.jsonc. Keeping this empty avoids
   // generating a duplicate DB binding during Cloudflare's Vite build.
-  d1_databases: [],
+  d1_databases: process.env.CI
+    ? []
+    : [
+        {
+          binding: "DB",
+          database_name: "hyfl-parent-checkin-local",
+          database_id: "4a6231dd-9fbf-4c29-b956-496a5edbcf7d",
+        },
+      ],
   r2_buckets: r2
     ? [
         {
