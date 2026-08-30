@@ -84,7 +84,7 @@ function AppHeader({
       <div className="header-brand">
         <img
           className="school-logo"
-          src="/hyfl-logo.png"
+          src="/hyfl-logo-embedded.svg"
           alt="한영외국어고등학교"
         />
         <span>학부모 행사 참석 관리</span>
@@ -206,7 +206,7 @@ export default function Home() {
             className="login-card"
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <img src="/hyfl-logo.png" alt="한영외국어고등학교" />
+            <img src="/hyfl-logo-embedded.svg" alt="한영외국어고등학교" />
             <p>ADMINISTRATION</p>
             <h2>관리자 로그인</h2>
             <span>행사 현황과 참석 명단은 관리자만 확인할 수 있습니다.</span>

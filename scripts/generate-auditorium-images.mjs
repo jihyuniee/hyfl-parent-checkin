@@ -4,7 +4,14 @@ import { readFileSync, writeFileSync } from "node:fs";
 const url = "https://hyfl-parent-checkin.jihyun178.workers.dev/";
 const logo = readFileSync(new URL("../public/hyfl-logo.png", import.meta.url)).toString("base64");
 const qr = await QRCode.toString(url, { type: "svg", errorCorrectionLevel: "H", margin: 3, color: { dark: "#111310", light: "#ffffff" } });
+const qrViewBox = qr.match(/viewBox="([^"]+)"/)?.[1];
+if (!qrViewBox) throw new Error("QR viewBox를 확인할 수 없습니다.");
 const qrBody = qr.replace(/^.*?<svg[^>]*>/s, "").replace(/<\/svg>\s*$/s, "");
+
+writeFileSync(
+  new URL("../public/hyfl-logo-embedded.svg", import.meta.url),
+  `<svg xmlns="http://www.w3.org/2000/svg" width="367" height="71" viewBox="0 0 367 71"><image href="data:image/png;base64,${logo}" width="367" height="71"/></svg>`,
+);
 
 for (const [grade, date] of [[1,"2026. 09. 03."],[2,"2026. 09. 04."]]) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
@@ -18,7 +25,7 @@ for (const [grade, date] of [[1,"2026. 09. 03."],[2,"2026. 09. 04."]]) {
   <text x="315" y="535" text-anchor="middle" fill="#242520" font-family="'Noto Sans KR Thin', 'Noto Sans KR', Arial, sans-serif" font-size="29" font-weight="500">QR 코드를 촬영해 주세요</text>
   <text x="315" y="586" text-anchor="middle" fill="#77766f" font-family="'Noto Sans KR Thin', 'Noto Sans KR', Arial, sans-serif" font-size="20">자녀의 반과 이름을 입력하면</text>
   <text x="315" y="620" text-anchor="middle" fill="#77766f" font-family="'Noto Sans KR Thin', 'Noto Sans KR', Arial, sans-serif" font-size="20">참석 등록이 완료됩니다.</text>
-  <svg x="785" y="200" width="800" height="800" viewBox="0 0 41 41">${qrBody}</svg>
+  <svg x="785" y="200" width="800" height="800" viewBox="${qrViewBox}" shape-rendering="crispEdges">${qrBody}</svg>
   <line x1="104" y1="955" x2="625" y2="955" stroke="#d6d4cd" stroke-width="1"/>
   <text x="104" y="992" fill="#77766f" font-family="Arial, sans-serif" font-size="15" letter-spacing="1">hyfl-parent-checkin.jihyun178.workers.dev</text>
   </svg>`;
