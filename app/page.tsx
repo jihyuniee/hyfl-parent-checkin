@@ -132,7 +132,7 @@ export default function Home() {
           setEventAvailable(
             preview ||
               data.event.eventDate === today ||
-              (today === "2026-08-31" && eventGrade === 2),
+              eventGrade === 2,
           );
           if ([1, 2, 3].includes(eventGrade)) setRequestedGrade(eventGrade);
         } else setEventAvailable(false);
