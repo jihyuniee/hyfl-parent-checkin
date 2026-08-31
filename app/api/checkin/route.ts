@@ -118,6 +118,7 @@ export async function POST(request: Request) {
     const partySize = Number(body.partySize ?? 1);
     const preview = body.preview === true;
     const today = koreaDate();
+    const gradeTwoTestOpen = today === "2026-08-31" && grade === 2;
     if (
       !eventId ||
       !grade ||
@@ -154,7 +155,7 @@ export async function POST(request: Request) {
           studentName,
           partySize,
           today,
-          preview ? 1 : 0,
+          preview || gradeTwoTestOpen ? 1 : 0,
         )
         .first<AttendanceRecord>(),
     );
