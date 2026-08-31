@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     const partySize = Number(body.partySize ?? 1);
     const preview = body.preview === true;
     const today = koreaDate();
-    const gradeTwoTestOpen = today === "2026-08-31" && grade === 2;
+    const gradeTwoTestOpen = grade === 2;
     if (
       !eventId ||
       !grade ||
