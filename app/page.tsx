@@ -149,7 +149,7 @@ export default function Home() {
     setShowLogin(true);
   };
   const loadAdmin = async () => {
-    const r = await fetch("/api/admin");
+    const r = await fetch(`/api/admin${requestedGrade ? `?grade=${requestedGrade}` : ""}`);
     if (!r.ok) return false;
     const data = await r.json();
     if (data.students) setStudents(data.students);
@@ -837,12 +837,12 @@ function Admin({
                 </p>
               </div>
               <div className="event-total">
-                <strong>{attendees.size}가정</strong>
-                <span>보호자 {eventAttendance.reduce((sum, a) => sum + a.partySize, 0)}명</span>
+                <strong>학생 {attendees.size}명</strong>
+                <span>학부모 {eventAttendance.reduce((sum, a) => sum + a.partySize, 0)}명</span>
               </div>
             </div>
             <div className="class-attendance-grid">
-              {classSummary.map((row) => <div className="class-attendance-card" key={row.classNo}><strong>{row.classNo}반</strong><b>{row.families}<small>가정</small></b><span>보호자 {row.people}명</span></div>)}
+              {classSummary.map((row) => <div className="class-attendance-card" key={row.classNo}><strong>{row.classNo}반</strong><b>{row.families}<small>명</small></b><span>학부모 {row.people}명</span></div>)}
             </div>
             <div className="panel">
               <div className="panel-head">
@@ -896,7 +896,7 @@ function Admin({
                         </tr>
                       );
                     })}
-                    {!attendedRows.length&&<tr><td colSpan={6} className="empty-table">아직 참석 등록된 가정이 없습니다.</td></tr>}
+                    {!attendedRows.length&&<tr><td colSpan={6} className="empty-table">아직 참석 등록된 학생이 없습니다.</td></tr>}
                   </tbody>
                 </table>
               </div>
