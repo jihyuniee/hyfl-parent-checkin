@@ -33,14 +33,14 @@ for (const [grade, date] of [[1,"2026. 09. 03."],[2,"2026. 09. 04."]]) {
   writeFileSync(new URL(`../public/auditorium-grade${grade}.svg`, import.meta.url), svg);
 }
 
-const testUrl = "https://hyfl-parent-checkin.jihyun178.workers.dev/?grade=1&preview=1";
+const testUrl = "https://hyfl-parent-checkin.jihyun178.workers.dev/?grade=2&preview=1";
 const testQr = await QRCode.toString(testUrl, { type: "svg", errorCorrectionLevel: "H", margin: 3, color: { dark: "#111310", light: "#ffffff" } });
 const testViewBox = testQr.match(/viewBox="([^"]+)"/)?.[1];
 if (!testViewBox) throw new Error("테스트 QR viewBox를 확인할 수 없습니다.");
 const testQrBody = testQr.replace(/^.*?<svg[^>]*>/s, "").replace(/<\/svg>\s*$/s, "");
-const gradeOne = readFileSync(new URL("../public/auditorium-grade1.svg", import.meta.url), "utf8");
-const testSvg = gradeOne
-  .replace("2026. 09. 03.", "사전 점검용 · 1학년")
+const gradeTwo = readFileSync(new URL("../public/auditorium-grade2.svg", import.meta.url), "utf8");
+const testSvg = gradeTwo
+  .replace("2026. 09. 04.", "사전 점검용 · 2학년")
   .replace(
     /<svg x="785" y="200" width="800" height="800" viewBox="[^"]+" shape-rendering="crispEdges">[\s\S]*?<\/svg>/,
     `<svg x="785" y="200" width="800" height="800" viewBox="${testViewBox}" shape-rendering="crispEdges">${testQrBody}</svg>`,
