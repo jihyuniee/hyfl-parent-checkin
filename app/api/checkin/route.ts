@@ -116,9 +116,7 @@ export async function POST(request: Request) {
     const classNo = Number(body.classNo);
     const studentName = String(body.studentName ?? "").replace(/\s/g, "");
     const partySize = Number(body.partySize ?? 1);
-    const preview = body.preview === true;
     const today = koreaDate();
-    const gradeTwoTestOpen = grade === 2;
     if (
       !eventId ||
       !grade ||
@@ -140,7 +138,7 @@ export async function POST(request: Request) {
       FROM students s
       JOIN events e ON e.id = ?1
       WHERE s.active = 1 AND s.grade = ?2 AND s.class_no = ?3 AND REPLACE(s.name, ' ', '') = ?4
-        AND e.status IN ('active', 'scheduled') AND (?7 = 1 OR e.event_date = ?6)
+        AND e.status IN ('active', 'scheduled') AND (?2 = 2 OR e.event_date = ?6)
         AND (',' || e.target_grades || ',') LIKE '%,' || ?2 || ',%'
       ON CONFLICT(event_id, student_id) DO NOTHING
       RETURNING id, event_id AS eventId, student_id AS studentId,
@@ -155,7 +153,6 @@ export async function POST(request: Request) {
           studentName,
           partySize,
           today,
-          preview || gradeTwoTestOpen ? 1 : 0,
         )
         .first<AttendanceRecord>(),
     );
