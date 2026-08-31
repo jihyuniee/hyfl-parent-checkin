@@ -122,17 +122,18 @@ export default function Home() {
       .then((data) => {
         if (data.event) {
           setEvent(data.event);
+          const eventGrade = Number(data.event.targetGrades);
+          const today = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Seoul",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(new Date());
           setEventAvailable(
             preview ||
-              data.event.eventDate ===
-                new Intl.DateTimeFormat("en-CA", {
-                  timeZone: "Asia/Seoul",
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                }).format(new Date()),
+              data.event.eventDate === today ||
+              (today === "2026-08-31" && eventGrade === 2),
           );
-          const eventGrade = Number(data.event.targetGrades);
           if ([1, 2, 3].includes(eventGrade)) setRequestedGrade(eventGrade);
         } else setEventAvailable(false);
         setConnected(true);
