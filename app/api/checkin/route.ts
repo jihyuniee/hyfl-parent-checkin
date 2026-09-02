@@ -130,33 +130,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const record = await withD1Retry(() =>
-      env.DB.prepare(
-        `
-      INSERT INTO attendance (event_id, student_id, guardian_name, relationship, party_size)
-      SELECT ?1, s.id, '미수집', '미수집', ?5
-      FROM students s
-      JOIN events e ON e.id = ?1
-      WHERE s.active = 1 AND s.grade = ?2 AND s.class_no = ?3 AND REPLACE(s.name, ' ', '') = ?4
-        AND e.status IN ('active', 'scheduled') AND (?2 = 2 OR e.event_date = ?6)
-        AND (',' || e.target_grades || ',') LIKE '%,' || ?2 || ',%'
-      ON CONFLICT(event_id, student_id) DO NOTHING
-      RETURNING id, event_id AS eventId, student_id AS studentId,
-        guardian_name AS guardianName, relationship, party_size AS partySize,
-        checked_in_at AS checkedInAt
-    `,
-      )
-        .bind(
-          eventId,
-          grade,
-          classNo,
-          studentName,
-          partySize,
-          today,
-        )
-        .first<AttendanceRecord>(),
-    );
-
     const student = await withD1Retry(() =>
       env.DB.prepare(
         `
@@ -176,6 +149,43 @@ export async function POST(request: Request) {
         },
         { status: 404 },
       );
+
+    const event = await withD1Retry(() =>
+      env.DB.prepare(
+        `
+        SELECT id, event_date AS eventDate, status, target_grades AS targetGrades
+        FROM events WHERE id = ?1 LIMIT 1
+      `,
+      )
+        .bind(eventId)
+        .first<{ id: number; eventDate: string; status: string; targetGrades: string }>(),
+    );
+    const targetGrades = event?.targetGrades.split(",").map(Number) ?? [];
+    const eventOpen =
+      event &&
+      ["active", "scheduled"].includes(event.status) &&
+      targetGrades.includes(grade) &&
+      (grade === 2 || event.eventDate === today);
+    if (!eventOpen)
+      return Response.json(
+        { error: "현재 체크인 가능한 행사가 아닙니다." },
+        { status: 400 },
+      );
+
+    const record = await withD1Retry(() =>
+      env.DB.prepare(
+        `
+        INSERT OR IGNORE INTO attendance
+          (event_id, student_id, guardian_name, relationship, party_size)
+        VALUES (?1, ?2, '미수집', '미수집', ?3)
+        RETURNING id, event_id AS eventId, student_id AS studentId,
+          guardian_name AS guardianName, relationship, party_size AS partySize,
+          checked_in_at AS checkedInAt
+      `,
+      )
+        .bind(eventId, student.id, partySize)
+        .first<AttendanceRecord>(),
+    );
 
     if (!record) {
       const existing = await withD1Retry(() =>
